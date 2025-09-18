@@ -102,7 +102,7 @@ func (r *OrderRepositoryImpl) GetOrderSummary(islemAdi string) ([]OrderSummaryRe
 
 	fmt.Println(len(orderList))
 
-	var orderSummary []OrderSummaryResponse
+	orderSummary := []OrderSummaryResponse{}
 	// siparisin miktarlarini getir
 
 	for _, order := range orderList {

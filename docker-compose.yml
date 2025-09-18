@@ -1,25 +1,16 @@
-services:
-  nginx:
-    image: nginx:alpine
-    ports:
-      - "80:80"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf
-    networks:
-      - product-app
-    depends_on:
-      - product
+version: '3.8'
 
+services:
   product:
     build: .
     ports:
       - "3000:3000"
     environment:
-      - DB_HOST=192.168.1.161
+      - DB_HOST=host.docker.internal
       - DB_PORT=1433
       - DB_NAME=DegaTEXTILE
       - DB_USER=sa
-      - DB_PASSWORD=%%Dg_2936%%
+      - DB_PASSWORD=%%Dg2936%%
       - JWT_SECRET=tuRhMSDerrNv6RQbKTt7C2vlE5Yl29
     networks:
       - product-app
