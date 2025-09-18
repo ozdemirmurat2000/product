@@ -134,9 +134,27 @@ func (r *OrderRepositoryImpl) GetOrderSummary(islemAdi string) ([]OrderSummaryRe
 
 func (r *OrderRepositoryImpl) GetOrderUretimBilgileriBySiparisID(siparisID, uretimYeri string) (*SiparisUretimResponse, *appErrors.Error) {
 
+	var newUretimYeri string
+
+	if uretimYeri == "kalite" {
+		newUretimYeri = "Kalite Kontrol"
+	}
+	if uretimYeri == "yikama" {
+		newUretimYeri = "Yıkama"
+	}
+	if uretimYeri == "dokuma" {
+		newUretimYeri = "Dokuma"
+	}
+	if uretimYeri == "paketleme" {
+		newUretimYeri = "Paketleme"
+	}
+	if uretimYeri == "sevkiyat" {
+		newUretimYeri = "Sevkiyat"
+	}
+
 	// uretimleri getir //
 	uretimler := []UretimModel{}
-	if err := r.db.Where("SIPARIS_NO = ?", siparisID).Find(&uretimler).Error; err != nil {
+	if err := r.db.Where("SIPARIS_NO = ? AND URETIM_YERI = ?", siparisID, newUretimYeri).Find(&uretimler).Error; err != nil {
 		return nil, &appErrors.Error{
 			Code:    http.StatusInternalServerError,
 			Message: "siparis uretim bilgileri getirilirken bir hata olustu",
