@@ -300,9 +300,13 @@ func (r *OrderRepositoryImpl) GetOrderUretimBilgileriBySiparisID(siparisID, uret
 	}
 
 	for k, v := range uretimlerMap {
+		percent := 0.0
+		if toplamMiktar != 0 {
+			percent = (v / toplamMiktar) * 100
+		}
 		chartList = append(chartList, ChartResponse{
 			ColorHexCode: "#FF0000",
-			Percent:      (v / toplamMiktar) * 100,
+			Percent:      percent,
 			Name:         k,
 		})
 	}
