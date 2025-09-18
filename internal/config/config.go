@@ -13,19 +13,13 @@ type ConfigModel struct {
 	DBPassword   string
 	DBName       string
 	JWTSecretKey string
-	RedisHost    string
-	RedisPort    string
 }
 
 var Config ConfigModel
 
 func InitConfig() {
 
-	err := godotenv.Load(".env")
-
-	if err != nil {
-		panic(err)
-	}
+	_ = godotenv.Load(".env")
 
 	Config.DBHost = os.Getenv("DB_HOST")
 	Config.DBPort = os.Getenv("DB_PORT")
@@ -33,7 +27,5 @@ func InitConfig() {
 	Config.DBName = os.Getenv("DB_NAME")
 	Config.DBUser = os.Getenv("DB_USER")
 	Config.JWTSecretKey = os.Getenv("JWT_SECRET")
-	Config.RedisHost = os.Getenv("REDIS_HOST")
-	Config.RedisPort = os.Getenv("REDIS_PORT")
 
 }
