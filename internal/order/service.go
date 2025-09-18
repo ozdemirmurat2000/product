@@ -66,6 +66,22 @@ func (s *OrderServiceImpl) AddNewUretim(request UretimAddRequest) *appErrors.Err
 		now := time.Now()
 		uretimMiktari := float64(request.Miktar)
 
+		if request.UretimYeri == "kalite" {
+			request.UretimYeri = "Kalite Kontrol"
+		}
+		if request.UretimYeri == "yikama" {
+			request.UretimYeri = "Yıkama"
+		}
+		if request.UretimYeri == "dokuma" {
+			request.UretimYeri = "Dokuma"
+		}
+		if request.UretimYeri == "paketleme" {
+			request.UretimYeri = "Paketleme"
+		}
+		if request.UretimYeri == "sevkiyat" {
+			request.UretimYeri = "Sevkiyat"
+		}
+
 		uretim := UretimModel{
 			SiparisNo:       &request.SiparisNo,
 			UretimDurum:     &request.UretimDurum,
