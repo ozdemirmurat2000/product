@@ -1,0 +1,343 @@
+basePath: /api/v1
+definitions:
+  auth.LoginRequest:
+    properties:
+      password:
+        type: string
+      userName:
+        type: string
+    required:
+    - password
+    - userName
+    type: object
+  response.ErrorResponseModel:
+    properties:
+      error:
+        example: Error message
+        type: string
+      success:
+        example: false
+        type: boolean
+    type: object
+  response.SuccessResponseModel:
+    properties:
+      data: {}
+      message:
+        example: Operation successful
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: Production App Api documentation
+  title: Production App api
+  version: "1.0"
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: login request params
+        in: body
+        name: auth
+        required: true
+        schema:
+          $ref: '#/definitions/auth.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponseModel'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponseModel'
+      summary: This point user log in request
+      tags:
+      - auth
+  /defo:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: uretimYeri
+        in: query
+        name: uretimYeri
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponseModel'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Get defo tanim list by uretim yeri
+      tags:
+      - defotanim
+  /order:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: siparis id
+        in: query
+        name: siparisID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponseModel'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Get order by siparis id
+      tags:
+      - order
+  /order/summary:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: islem adi
+        in: query
+        name: islemAdi
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponseModel'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Get order summary list
+      tags:
+      - order
+  /order/summary/uretim:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: siparis id
+        in: query
+        name: siparisID
+        required: true
+        type: string
+      - description: uretim yeri
+        in: query
+        name: uretimYeri
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponseModel'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Get order uretim bilgileri by siparis id
+      tags:
+      - order
+  /order/uretim:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: id
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponseModel'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Delete uretim
+      tags:
+      - order
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Siparis no
+        in: formData
+        name: siparisNo
+        required: true
+        type: string
+      - description: Uretim durum
+        in: formData
+        name: uretimDurum
+        required: true
+        type: string
+      - description: Uretim yeri
+        in: formData
+        name: uretimYeri
+        required: true
+        type: string
+      - description: Miktari
+        in: formData
+        name: miktari
+        required: true
+        type: integer
+      - description: Resimler
+        in: formData
+        name: images
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponseModel'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Add new uretim
+      tags:
+      - order
+  /uretim:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: id
+        in: query
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponseModel'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: This point user log in request
+      tags:
+      - uretim
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: siparisNo
+        in: query
+        name: siparisNo
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponseModel'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: This point user log in request
+      tags:
+      - uretim
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: Siparis no
+        in: formData
+        name: siparisNo
+        required: true
+        type: string
+      - description: Uretim durum
+        in: formData
+        name: uretimDurum
+        required: true
+        type: string
+      - description: Uretim yeri
+        in: formData
+        name: uretimYeri
+        required: true
+        type: string
+      - description: Miktari
+        in: formData
+        name: miktari
+        required: true
+        type: integer
+      - description: Resimler
+        in: formData
+        name: images
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponseModel'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Upload images and order data
+      tags:
+      - uretim
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
