@@ -22,7 +22,7 @@ type IImageStorage interface {
 type ImageStorageImpl struct {
 }
 
-const FolderPath_Base = "/Users/macbookpro/projects/product/uploads"
+const FolderPath_Base = "C:/uploads"
 
 func NewImageStorageImpl() IImageStorage {
 	return &ImageStorageImpl{}
