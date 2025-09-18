@@ -35,19 +35,14 @@ func NewOrderRepositoryImpl(db *gorm.DB) OrderRepository {
 func (r *OrderRepositoryImpl) GetOrderBySiparisID(siparisID string) (*OrderResponse, *appErrors.Error) {
 	var order OrderModel
 
-	var scanResult map[string]interface{}
-
 	var imageBase64 string
 
-	err := r.db.Raw("SELECT * FROM SIPARISLISTE WHERE SIPARIS_NO = ?", siparisID).Scan(&scanResult).Error
-	if err != nil {
+	_ = r.db.Raw("SELECT RESIM FROM SIPARIS_RESIM WHERE SIPARIS_NO = ?", siparisID).Scan(&imageBase64).Error
 
-	}
-
-	if scanResult["SIPARIS_RESIM"] == nil {
+	if imageBase64 == "" {
 		imageBase64 = ""
 	} else {
-		imageBase64 = base64.StdEncoding.EncodeToString(scanResult["SIPARIS_RESIM"].([]uint8))
+		imageBase64 = base64.StdEncoding.EncodeToString([]byte(imageBase64))
 	}
 
 	if err := r.db.Where("SIPARIS_NO = ?", siparisID).First(&order).Error; err != nil {
@@ -195,8 +190,9 @@ func (r *OrderRepositoryImpl) GetOrderUretimBilgileriBySiparisID(siparisID, uret
 	var sevkiyatMiktar float64
 
 	for _, uretim := range uretimler {
-
 		var uretimYeri string
+
+		fmt.Println("uretim yeri", *uretim.UretimYeri)
 
 		if uretim.UretimYeri != nil {
 			uretimYeri = *uretim.UretimYeri
@@ -209,14 +205,14 @@ func (r *OrderRepositoryImpl) GetOrderUretimBilgileriBySiparisID(siparisID, uret
 		} else {
 			uretimYeri = utils.CapitalizeAllSmall(uretimYeri)
 
-			fmt.Println(uretimYeri)
+			fmt.Println("uretim yeri", uretimYeri)
 
 			switch uretimYeri {
 			case "dokuma":
 				dokumaMiktar += *uretim.Miktar
-			case "yikama":
+			case "yıkama":
 				yikamaMiktar += *uretim.Miktar
-			case "kalite":
+			case "kalite kontrol":
 				kaliteMiktar += *uretim.Miktar
 			case "paketleme":
 				paketlemeMiktar += *uretim.Miktar
@@ -227,7 +223,6 @@ func (r *OrderRepositoryImpl) GetOrderUretimBilgileriBySiparisID(siparisID, uret
 			}
 
 		}
-
 		toplamMiktar += *uretim.Miktar
 		if *uretim.UretimDurum == "Sağlam" {
 			saglamMiktar += *uretim.Miktar
@@ -300,13 +295,9 @@ func (r *OrderRepositoryImpl) GetOrderUretimBilgileriBySiparisID(siparisID, uret
 	}
 
 	for k, v := range uretimlerMap {
-		percent := 0.0
-		if toplamMiktar != 0 {
-			percent = (v / toplamMiktar) * 100
-		}
 		chartList = append(chartList, ChartResponse{
 			ColorHexCode: "#FF0000",
-			Percent:      percent,
+			Percent:      (v / toplamMiktar) * 100,
 			Name:         k,
 		})
 	}
