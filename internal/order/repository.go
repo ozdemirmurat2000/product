@@ -238,9 +238,19 @@ func (r *OrderRepositoryImpl) GetOrderUretimBilgileriBySiparisID(siparisID, uret
 	defoList := []DefoTanimModel{}
 
 	if uretimYeri == "kalite" {
-
 		uretimYeri = "Kalite Kontrol"
-
+	}
+	if uretimYeri == "yikama" {
+		uretimYeri = "Yıkama"
+	}
+	if uretimYeri == "dokuma" {
+		uretimYeri = "Dokuma"
+	}
+	if uretimYeri == "paketleme" {
+		uretimYeri = "Paketleme"
+	}
+	if uretimYeri == "sevkiyat" {
+		uretimYeri = "Sevkiyat"
 	}
 
 	if err := r.db.Where("URETIM_YERI = ?", uretimYeri).Find(&defoList).Error; err != nil {
