@@ -361,14 +361,14 @@ func (u *UretimModel) TableName() string {
 }
 
 type UretimResponse struct {
-	KeyNumber       int        `json:"keyNumber"`
-	SiparisNo       *string    `json:"siparisNo"`
-	UretimDurum     *string    `json:"uretimDurum"`
-	UretimYeri      *string    `json:"uretimYeri"`
-	Miktar          *float64   `json:"miktar"`
-	Kullanici       *string    `json:"kullanici"`
-	UretimTarihSaat *time.Time `json:"uretimTarihSaat"`
-	ImageURL        []string   `json:"imageURL"`
+	KeyNumber       int       `json:"keyNumber"`
+	SiparisNo       string    `json:"siparisNo"`
+	UretimDurum     string    `json:"uretimDurum"`
+	UretimYeri      string    `json:"uretimYeri"`
+	Miktar          float64   `json:"miktar"`
+	Kullanici       string    `json:"kullanici"`
+	UretimTarihSaat time.Time `json:"uretimTarihSaat"`
+	ImageURL        []string  `json:"imageURL"`
 }
 
 type SiparisUretimResponse struct {
@@ -412,12 +412,12 @@ type ChartResponse struct {
 func (u *UretimModel) ToUretimResponse() UretimResponse {
 	return UretimResponse{
 		KeyNumber:       u.KeyNumber,
-		SiparisNo:       u.SiparisNo,
-		UretimDurum:     u.UretimDurum,
-		UretimYeri:      u.UretimYeri,
-		Miktar:          u.Miktar,
-		Kullanici:       u.Kullanici,
-		UretimTarihSaat: u.UretimTarihSaat,
+		SiparisNo:       utils.StringValue(u.SiparisNo),
+		UretimDurum:     utils.StringValue(u.UretimDurum),
+		UretimYeri:      utils.StringValue(u.UretimYeri),
+		Miktar:          utils.Float64Value(u.Miktar),
+		Kullanici:       utils.StringValue(u.Kullanici),
+		UretimTarihSaat: utils.TimeValue(u.UretimTarihSaat),
 	}
 }
 

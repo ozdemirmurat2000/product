@@ -292,10 +292,10 @@ func (r *OrderRepositoryImpl) GetOrderUretimBilgileriBySiparisID(siparisID, uret
 
 	for _, v := range uretimlerResponse {
 
-		if _, ok := uretimlerMap[*v.UretimDurum]; !ok {
-			uretimlerMap[*v.UretimDurum] = 0
+		if _, ok := uretimlerMap[v.UretimDurum]; !ok {
+			uretimlerMap[v.UretimDurum] = 0
 		}
-		uretimlerMap[*v.UretimDurum] += *v.Miktar
+		uretimlerMap[v.UretimDurum] += v.Miktar
 
 	}
 
