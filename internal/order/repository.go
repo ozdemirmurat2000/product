@@ -237,6 +237,12 @@ func (r *OrderRepositoryImpl) GetOrderUretimBilgileriBySiparisID(siparisID, uret
 
 	defoList := []DefoTanimModel{}
 
+	if uretimYeri == "kalite" {
+
+		uretimYeri = "Kalite Kontrol"
+
+	}
+
 	if err := r.db.Where("URETIM_YERI = ?", uretimYeri).Find(&defoList).Error; err != nil {
 		return nil, &appErrors.Error{
 			Code:    http.StatusInternalServerError,
