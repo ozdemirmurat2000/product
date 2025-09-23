@@ -3,6 +3,7 @@ package order
 import (
 	"net/http"
 	"productApp/pkg/jwt"
+	"productApp/pkg/models"
 	"productApp/pkg/response"
 	"strconv"
 
@@ -15,6 +16,8 @@ type IOrderController interface {
 	GetOrderUretimBilgileriBySiparisID(ctx *gin.Context)
 	AddNewUretim(ctx *gin.Context)
 	DeleteUretim(ctx *gin.Context)
+	GetCustomerOrdersByIslemAdi(ctx *gin.Context)
+	AddNewModelResim(ctx *gin.Context)
 }
 
 type OrderControllerImpl struct {
@@ -60,6 +63,7 @@ func (c *OrderControllerImpl) GetOrderBySiparisID(ctx *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Param 		 islemAdi query string true "islem adi"
+// @Param 		 musteriKodu query string true "musteri kodu"
 // @Success      200  {object} response.SuccessResponseModel
 // @Failure      400  {object} response.ErrorResponseModel
 // @Security     BearerAuth
@@ -67,8 +71,9 @@ func (c *OrderControllerImpl) GetOrderBySiparisID(ctx *gin.Context) {
 func (c *OrderControllerImpl) GetOrderSummaryList(ctx *gin.Context) {
 
 	islemAdi := ctx.Query("islemAdi")
+	musteriKodu := ctx.Query("musteriKodu")
 
-	orderSummaryList, err := c.service.GetOrderSummaryList(islemAdi)
+	orderSummaryList, err := c.service.GetOrderSummaryList(islemAdi, musteriKodu)
 	if err != nil {
 		ctx.JSON(err.Code, response.ErrorResponse(err.Message))
 		return
@@ -129,7 +134,7 @@ func (c *OrderControllerImpl) GetOrderUretimBilgileriBySiparisID(ctx *gin.Contex
 func (c *OrderControllerImpl) AddNewUretim(ctx *gin.Context) {
 
 	ctx.Request.ParseMultipartForm(20 << 20)
-	var request UretimAddRequest
+	var request models.UretimAddRequest
 
 	claims := ctx.MustGet("claims").(*jwt.Claims)
 
@@ -206,4 +211,71 @@ func (c *OrderControllerImpl) DeleteUretim(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, response.SuccessResponse("uretim silindi", nil))
+}
+
+// Get Customer Orders By Islem Adi
+//
+// @Summary      Get customer orders by islem adi
+// @Tags         order
+// @Accept       json
+// @Produce      json
+// @Param        islemAdi query string true "islem adi"
+// @Success      200  {object} response.SuccessResponseModel
+// @Failure      400  {object} response.ErrorResponseModel
+// @Security     BearerAuth
+// @Router       /order/customerOrders [get]
+func (c *OrderControllerImpl) GetCustomerOrdersByIslemAdi(ctx *gin.Context) {
+
+	islemAdi := ctx.Query("islemAdi")
+	if islemAdi == "" {
+		ctx.JSON(http.StatusBadRequest, response.ErrorResponse("islemAdi zorunlu"))
+		return
+	}
+
+	customerOrders, err := c.service.GetCustomerOrdersByIslemAdi(islemAdi)
+	if err != nil {
+		ctx.JSON(err.Code, response.ErrorResponse(err.Message))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, response.SuccessResponse("customer orders", customerOrders))
+}
+
+// Add New Model Resim
+//
+// @Summary      Add new model resim
+// @Tags         order
+// @Accept       json
+// @Produce      json
+// @Param        image formData file true "Image"
+// @Param        kodu formData string true "Kodu"
+// @Success      200  {object} response.SuccessResponseModel
+// @Failure      400  {object} response.ErrorResponseModel
+// @Security     BearerAuth
+// @Router       /order/modelResim [post]
+func (c *OrderControllerImpl) AddNewModelResim(ctx *gin.Context) {
+	file, err := ctx.FormFile("image")
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, response.ErrorResponse(err.Error()))
+		return
+	}
+	kodu := ctx.Request.FormValue("kodu")
+
+	if file == nil {
+		ctx.JSON(http.StatusBadRequest, response.ErrorResponse("file zorunlu"))
+		return
+	}
+
+	if kodu == "" {
+		ctx.JSON(http.StatusBadRequest, response.ErrorResponse("kodu zorunlu"))
+		return
+	}
+
+	url, appErr := c.service.AddNewModelResim(file, kodu)
+	if appErr != nil {
+		ctx.JSON(appErr.Code, response.ErrorResponse(appErr.Message))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, response.SuccessResponse("model resim eklendi", url))
 }

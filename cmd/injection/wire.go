@@ -8,7 +8,6 @@ import (
 	defotanim "productApp/internal/defo_tanim"
 	order "productApp/internal/order"
 	uretim "productApp/internal/uretim"
-	image_storage "productApp/pkg/image_storage"
 
 	"github.com/google/wire"
 	"gorm.io/gorm"
@@ -21,7 +20,7 @@ func InitializeAuthController(db *gorm.DB) auth.AuthController {
 }
 
 func InitializeOrderController(db *gorm.DB) order.IOrderController {
-	wire.Build(order.NewOrderRepositoryImpl, order.NewOrderServiceImpl, order.NewOrderControllerImpl, image_storage.NewImageStorageImpl)
+	wire.Build(order.NewOrderRepositoryImpl, order.NewOrderServiceImpl, order.NewOrderControllerImpl)
 	return &order.OrderControllerImpl{}
 }
 

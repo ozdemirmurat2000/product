@@ -60,19 +60,17 @@ func main() {
 	uretim.RegisterUretimRoutes(api, uretimController)
 	defotanim.RegisterDefoTanimRoutes(api, defoTanimController)
 
-	r.GET("/uploads/*filepath", func(c *gin.Context) {
-		filepath := c.Param("filepath")
-		fullPath := "./uploads" + filepath
-		c.File(fullPath)
-	})
+	// r.GET("/uploads/*filepath", func(c *gin.Context) {
+	// 	filepath := c.Param("filepath")
+	// 	fullPath := "./uploads" + filepath
+	// 	c.File(fullPath)
+	// })
 	// swagger
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// run server
 	logger.Logger.Info("server start :3000")
+
 	panic(r.Run(":3000"))
 
 }
-
-// 0719 #
-// 990719

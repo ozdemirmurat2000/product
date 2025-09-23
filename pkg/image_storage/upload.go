@@ -3,10 +3,11 @@ package image_storage
 import (
 	"io"
 	"mime/multipart"
-	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
+	"productApp/internal/config"
 	appErrors "productApp/pkg/errors"
 	"productApp/pkg/logger"
 
@@ -14,32 +15,26 @@ import (
 	"go.uber.org/zap"
 )
 
-type IImageStorage interface {
-	UploadImage(file *multipart.FileHeader, folderPath string) (string, error)
-	DeleteImage(folderPath string) error
-}
+const MaxFileSize = 20 * 1024 * 1024
 
-type ImageStorageImpl struct {
-}
+func UploadImage(file *multipart.FileHeader, folderPath string) (string, *appErrors.Error) {
 
-const FolderPath_Base = "C:/uploads"
+	if err := sizeIsAllowed(file.Size); err != nil {
+		return "", err
+	}
 
-func NewImageStorageImpl() IImageStorage {
-	return &ImageStorageImpl{}
-}
+	if err := extensionIsAllowed(file.Filename); err != nil {
+		return "", err
+	}
 
-func (s *ImageStorageImpl) UploadImage(file *multipart.FileHeader, folderPath string) (string, error) {
 	// full path oluştur (disk yolu)
-	fullPath := filepath.Join(FolderPath_Base, folderPath)
+	fullPath := filepath.Join(config.Config.UploadFolder, folderPath)
 
 	// klasör yoksa oluştur
 	if _, err := os.Stat(fullPath); os.IsNotExist(err) {
 		if err := os.MkdirAll(fullPath, 0755); err != nil {
 			logger.Logger.Error("Error creating directory", zap.Error(err))
-			return "", &appErrors.Error{
-				Code:    http.StatusInternalServerError,
-				Message: appErrors.ERR_IMAGE_UPLOAD,
-			}
+			return "", err_folder_creation_failed
 		}
 	}
 
@@ -53,10 +48,7 @@ func (s *ImageStorageImpl) UploadImage(file *multipart.FileHeader, folderPath st
 	outFile, err := os.Create(physicalPath)
 	if err != nil {
 		logger.Logger.Error("Error creating file", zap.Error(err))
-		return "", &appErrors.Error{
-			Code:    http.StatusInternalServerError,
-			Message: appErrors.ERR_IMAGE_UPLOAD,
-		}
+		return "", err_folder_creation_failed
 	}
 	defer outFile.Close()
 
@@ -64,20 +56,14 @@ func (s *ImageStorageImpl) UploadImage(file *multipart.FileHeader, folderPath st
 	srcFile, err := file.Open()
 	if err != nil {
 		logger.Logger.Error("Error opening file", zap.Error(err))
-		return "", &appErrors.Error{
-			Code:    http.StatusInternalServerError,
-			Message: appErrors.ERR_IMAGE_UPLOAD,
-		}
+		return "", err_folder_creation_failed
 	}
 	defer srcFile.Close()
 
 	// dosyayı kopyala
 	if _, err := io.Copy(outFile, srcFile); err != nil {
 		logger.Logger.Error("Error copying file", zap.Error(err))
-		return "", &appErrors.Error{
-			Code:    http.StatusInternalServerError,
-			Message: appErrors.ERR_IMAGE_UPLOAD,
-		}
+		return "", err_folder_creation_failed
 	}
 
 	// Kullanıcıya verilecek URL (Nginx servis edecek)
@@ -85,17 +71,39 @@ func (s *ImageStorageImpl) UploadImage(file *multipart.FileHeader, folderPath st
 
 	return publicURL, nil
 }
+func DeleteImage(folderPath string) error {
 
-func (s *ImageStorageImpl) DeleteImage(folderPath string) error {
-
-	fullPath := filepath.Join(FolderPath_Base, folderPath)
+	fullPath := filepath.Join(config.Config.UploadFolder, folderPath)
 
 	if err := os.Remove(fullPath); err != nil {
 		logger.Logger.Error("Error removing file", zap.Error(err))
-		return &appErrors.Error{
-			Code:    http.StatusInternalServerError,
-			Message: appErrors.ERR_IMAGE_DELETE,
+		return err_image_delete_failed
+	}
+
+	return nil
+}
+
+func sizeIsAllowed(size int64) *appErrors.Error {
+	if size > MaxFileSize {
+		return err_image_is_too_large
+	}
+
+	return nil
+}
+
+func extensionIsAllowed(extension string) *appErrors.Error {
+	allowedExtensions := []string{".jpg", ".jpeg", ".png", ".gif", ".webp"}
+	valid := false
+
+	for _, ext := range allowedExtensions {
+		if strings.HasSuffix(strings.ToLower(extension), ext) {
+			valid = true
+			break
 		}
+	}
+
+	if !valid {
+		return err_image_type_is_not_allowed
 	}
 
 	return nil

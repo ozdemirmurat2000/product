@@ -12,7 +12,6 @@ import (
 	"productApp/internal/defo_tanim"
 	"productApp/internal/order"
 	"productApp/internal/uretim"
-	"productApp/pkg/image_storage"
 )
 
 // Injectors from wire.go:
@@ -26,8 +25,7 @@ func InitializeAuthController(db *gorm.DB) auth.AuthController {
 
 func InitializeOrderController(db *gorm.DB) order.IOrderController {
 	orderRepository := order.NewOrderRepositoryImpl(db)
-	iImageStorage := image_storage.NewImageStorageImpl()
-	iOrderService := order.NewOrderServiceImpl(db, orderRepository, iImageStorage)
+	iOrderService := order.NewOrderServiceImpl(db, orderRepository)
 	iOrderController := order.NewOrderControllerImpl(iOrderService)
 	return iOrderController
 }

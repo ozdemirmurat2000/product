@@ -2,34 +2,37 @@ package order
 
 import (
 	"fmt"
+	"mime/multipart"
 	"net/http"
 	appErrors "productApp/pkg/errors"
-	image_storage "productApp/pkg/image_storage"
+	"productApp/pkg/image_storage"
+	"productApp/pkg/models"
 	"time"
 
 	"gorm.io/gorm"
 )
 
 type IOrderService interface {
-	GetOrderBySiparisID(siparisID string) (*OrderResponse, *appErrors.Error)
-	GetOrderSummaryList(islemAdi string) ([]OrderSummaryResponse, *appErrors.Error)
-	GetOrderUretimBilgileriBySiparisID(siparisID string, uretimYeri string) (*SiparisUretimResponse, *appErrors.Error)
-	AddNewUretim(request UretimAddRequest) *appErrors.Error
+	GetOrderBySiparisID(siparisID string) (*models.OrderResponse, *appErrors.Error)
+	GetOrderSummaryList(islemAdi string, musteriKodu string) ([]models.OrderSummaryResponse, *appErrors.Error)
+	GetOrderUretimBilgileriBySiparisID(siparisID string, uretimYeri string) (*models.SiparisUretimResponse, *appErrors.Error)
+	AddNewUretim(request models.UretimAddRequest) *appErrors.Error
 	DeleteUretim(id int) *appErrors.Error
+	GetCustomerOrdersByIslemAdi(islemAdi string) ([]models.CustomerOrdersResponse, *appErrors.Error)
+	AddNewModelResim(file *multipart.FileHeader, kodu string) (string, *appErrors.Error)
 	// UpdateUretim(uretim UretimUpdateRequest) *appErrors.Error
 }
 
 type OrderServiceImpl struct {
-	db           *gorm.DB
-	repo         OrderRepository
-	imageStorage image_storage.IImageStorage
+	db   *gorm.DB
+	repo OrderRepository
 }
 
-func NewOrderServiceImpl(db *gorm.DB, repo OrderRepository, imageStorage image_storage.IImageStorage) IOrderService {
-	return &OrderServiceImpl{repo: repo, imageStorage: imageStorage, db: db}
+func NewOrderServiceImpl(db *gorm.DB, repo OrderRepository) IOrderService {
+	return &OrderServiceImpl{repo: repo, db: db}
 }
 
-func (s *OrderServiceImpl) GetOrderBySiparisID(siparisID string) (*OrderResponse, *appErrors.Error) {
+func (s *OrderServiceImpl) GetOrderBySiparisID(siparisID string) (*models.OrderResponse, *appErrors.Error) {
 
 	orderList, err := s.repo.GetOrderBySiparisID(siparisID)
 	if err != nil {
@@ -38,15 +41,15 @@ func (s *OrderServiceImpl) GetOrderBySiparisID(siparisID string) (*OrderResponse
 	return orderList, nil
 }
 
-func (s *OrderServiceImpl) GetOrderSummaryList(islemAdi string) ([]OrderSummaryResponse, *appErrors.Error) {
-	orderSummary, err := s.repo.GetOrderSummary(islemAdi)
+func (s *OrderServiceImpl) GetOrderSummaryList(islemAdi string, musteriKodu string) ([]models.OrderSummaryResponse, *appErrors.Error) {
+	orderSummary, err := s.repo.GetOrderSummary(islemAdi, musteriKodu)
 	if err != nil {
 		return nil, err
 	}
 	return orderSummary, nil
 }
 
-func (s *OrderServiceImpl) GetOrderUretimBilgileriBySiparisID(siparisID string, uretimYeri string) (*SiparisUretimResponse, *appErrors.Error) {
+func (s *OrderServiceImpl) GetOrderUretimBilgileriBySiparisID(siparisID string, uretimYeri string) (*models.SiparisUretimResponse, *appErrors.Error) {
 	orderSummary, err := s.repo.GetOrderUretimBilgileriBySiparisID(siparisID, uretimYeri)
 	if err != nil {
 		return nil, err
@@ -54,7 +57,7 @@ func (s *OrderServiceImpl) GetOrderUretimBilgileriBySiparisID(siparisID string, 
 	return orderSummary, nil
 }
 
-func (s *OrderServiceImpl) AddNewUretim(request UretimAddRequest) *appErrors.Error {
+func (s *OrderServiceImpl) AddNewUretim(request models.UretimAddRequest) *appErrors.Error {
 
 	_, errSiparis := s.repo.GetOrderBySiparisID(request.SiparisNo)
 	if errSiparis != nil {
@@ -82,7 +85,7 @@ func (s *OrderServiceImpl) AddNewUretim(request UretimAddRequest) *appErrors.Err
 			request.UretimYeri = "Sevkiyat"
 		}
 
-		uretim := UretimModel{
+		uretim := models.UretimModel{
 			SiparisNo:       &request.SiparisNo,
 			UretimDurum:     &request.UretimDurum,
 			UretimYeri:      &request.UretimYeri,
@@ -104,7 +107,7 @@ func (s *OrderServiceImpl) AddNewUretim(request UretimAddRequest) *appErrors.Err
 
 		for _, image := range request.File {
 
-			url, err := s.imageStorage.UploadImage(image, "uretim")
+			url, err := image_storage.UploadImage(image, "uretim")
 			if err != nil {
 				fmt.Println("buraya geldi")
 				return &appErrors.Error{
@@ -114,8 +117,8 @@ func (s *OrderServiceImpl) AddNewUretim(request UretimAddRequest) *appErrors.Err
 			}
 			fmt.Println("resim kayit edildi")
 
-			err = s.repo.AddUretimUploads(tx, uretim.KeyNumber, url)
-			if err != nil {
+			errRepo := s.repo.AddUretimUploads(tx, uretim.KeyNumber, url)
+			if errRepo != nil {
 				return &appErrors.Error{
 					Code:    http.StatusInternalServerError,
 					Message: appErrors.ERR_UNKNOWN,
@@ -183,6 +186,26 @@ func (s *OrderServiceImpl) DeleteUretim(id int) *appErrors.Error {
 	// }
 
 	// return nil
+}
+
+func (s *OrderServiceImpl) GetCustomerOrdersByIslemAdi(islemAdi string) ([]models.CustomerOrdersResponse, *appErrors.Error) {
+	return s.repo.GetCustomerOrderByIslemAdi(islemAdi)
+}
+
+func (s *OrderServiceImpl) AddNewModelResim(file *multipart.FileHeader, kodu string) (string, *appErrors.Error) {
+
+	url, err := image_storage.UploadImage(file, "iplik")
+	if err != nil {
+		return "", err
+	}
+
+	_, errRepo := s.repo.AddModelResim(url, kodu)
+	if errRepo != nil {
+		image_storage.DeleteImage(url)
+		return "", errRepo
+	}
+
+	return url, nil
 }
 
 // func (s *OrderServiceImpl) UpdateUretim(uretim UretimUpdateRequest) *appErrors.Error {

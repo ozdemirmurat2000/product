@@ -16,3 +16,7 @@ func Capitalize(str string) string {
 func CapitalizeAllSmall(str string) string {
 	return strings.ToLower(str)
 }
+
+func CapitaliseAllUpper(str string) string {
+	return strings.ToUpper(str)
+}

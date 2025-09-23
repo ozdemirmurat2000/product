@@ -9,6 +9,13 @@ func (e *Error) Error() string {
 	return e.Message
 }
 
+func New(code int, message string) *Error {
+	return &Error{
+		Code:    code,
+		Message: message,
+	}
+}
+
 const (
 	ERR_UNKNOWN      = "bilinmeyen bir hata olustu lutfen daha sonra tekrar deneyin"
 	ERR_IMAGE_UPLOAD = "resim yukleme basarisiz"

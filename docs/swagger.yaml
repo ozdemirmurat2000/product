@@ -113,6 +113,63 @@ paths:
       summary: Get order by siparis id
       tags:
       - order
+  /order/customerOrders:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: islem adi
+        in: query
+        name: islemAdi
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponseModel'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Get customer orders by islem adi
+      tags:
+      - order
+  /order/modelResim:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Image
+        in: formData
+        name: image
+        required: true
+        type: file
+      - description: Kodu
+        in: formData
+        name: kodu
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponseModel'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Add new model resim
+      tags:
+      - order
   /order/summary:
     get:
       consumes:
@@ -121,6 +178,11 @@ paths:
       - description: islem adi
         in: query
         name: islemAdi
+        required: true
+        type: string
+      - description: musteri kodu
+        in: query
+        name: musteriKodu
         required: true
         type: string
       produces:

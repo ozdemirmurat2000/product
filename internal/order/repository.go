@@ -6,21 +6,25 @@ import (
 	"net/http"
 	appErrors "productApp/pkg/errors"
 	"productApp/pkg/logger"
+	"productApp/pkg/models"
 	"productApp/pkg/utils"
 	"sort"
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type OrderRepository interface {
-	GetOrderBySiparisID(siparisID string) (*OrderResponse, *appErrors.Error)
-	GetOrderSummary(islemAdi string) ([]OrderSummaryResponse, *appErrors.Error)
-	GetOrderUretimBilgileriBySiparisID(siparisID string, uretimYeri string) (*SiparisUretimResponse, *appErrors.Error)
+	GetOrderBySiparisID(siparisID string) (*models.OrderResponse, *appErrors.Error)
+	GetOrderSummary(islemAdi string, musteriKodu string) ([]models.OrderSummaryResponse, *appErrors.Error)
+	GetOrderUretimBilgileriBySiparisID(siparisID string, uretimYeri string) (*models.SiparisUretimResponse, *appErrors.Error)
 	AddUretimUploads(tx *gorm.DB, uretimID int, url string) error
 	DeleteUretim(uretimID int) *appErrors.Error
 	GetUretimUploadsPath(tx *gorm.DB, uretimID int) ([]string, *appErrors.Error)
+	GetCustomerOrderByIslemAdi(islemAdi string) ([]models.CustomerOrdersResponse, *appErrors.Error)
+	AddModelResim(imageURL string, code string) (string, *appErrors.Error)
 	// UpdateUretim(tx *gorm.DB, uretim UretimUpdateRequest) *appErrors.Error
 }
 
@@ -32,8 +36,8 @@ func NewOrderRepositoryImpl(db *gorm.DB) OrderRepository {
 	return &OrderRepositoryImpl{db: db}
 }
 
-func (r *OrderRepositoryImpl) GetOrderBySiparisID(siparisID string) (*OrderResponse, *appErrors.Error) {
-	var order OrderModel
+func (r *OrderRepositoryImpl) GetOrderBySiparisID(siparisID string) (*models.OrderResponse, *appErrors.Error) {
+	var order models.OrderModel
 
 	var imageBase64 string
 
@@ -61,7 +65,7 @@ func (r *OrderRepositoryImpl) GetOrderBySiparisID(siparisID string) (*OrderRespo
 	return order.ToOrderResponse(imageBase64), nil
 }
 
-func (r *OrderRepositoryImpl) GetOrderSummary(islemAdi string) ([]OrderSummaryResponse, *appErrors.Error) {
+func (r *OrderRepositoryImpl) GetOrderSummary(islemAdi string, musteriKodu string) ([]models.OrderSummaryResponse, *appErrors.Error) {
 
 	var column string
 
@@ -87,8 +91,8 @@ func (r *OrderRepositoryImpl) GetOrderSummary(islemAdi string) ([]OrderSummaryRe
 	}
 
 	// siparisleri getir
-	var orderList []OrderModel
-	if err := r.db.Where(column+" = ?", 1).Find(&orderList).Error; err != nil {
+	var orderList []models.OrderSummaryModel
+	if err := r.db.Model(&models.OrderModel{}).Select("SIPARIS_NO", "MUSTERI_ADI", "D_DESEN_KODU", "D_DESEN_ACIKLAMA", "D_MODEL_KODU", "SIPARIS_MIKTARI").Where(column+" = ?", 1).Where("MUSTERI_KODU = ?", musteriKodu).Find(&orderList).Error; err != nil {
 		return nil, &appErrors.Error{
 			Code:    http.StatusInternalServerError,
 			Message: "siparis ozet getirilirken bir hata olustu",
@@ -97,11 +101,12 @@ func (r *OrderRepositoryImpl) GetOrderSummary(islemAdi string) ([]OrderSummaryRe
 
 	fmt.Println(len(orderList))
 
-	orderSummary := []OrderSummaryResponse{}
+	orderSummary := []models.OrderSummaryResponse{}
 	// siparisin miktarlarini getir
 
 	for _, order := range orderList {
-		var uretimler []UretimModel
+		fmt.Println(order.SiparisNo)
+		var uretimler []models.UretimModel
 		r.db.Where("SIPARIS_NO = ?", order.SiparisNo).Find(&uretimler)
 
 		var uretimlerMap = make(map[string]float64)
@@ -127,7 +132,7 @@ func (r *OrderRepositoryImpl) GetOrderSummary(islemAdi string) ([]OrderSummaryRe
 	return orderSummary, nil
 }
 
-func (r *OrderRepositoryImpl) GetOrderUretimBilgileriBySiparisID(siparisID, uretimYeri string) (*SiparisUretimResponse, *appErrors.Error) {
+func (r *OrderRepositoryImpl) GetOrderUretimBilgileriBySiparisID(siparisID, uretimYeri string) (*models.SiparisUretimResponse, *appErrors.Error) {
 
 	var newUretimYeri string
 
@@ -148,7 +153,7 @@ func (r *OrderRepositoryImpl) GetOrderUretimBilgileriBySiparisID(siparisID, uret
 	}
 
 	// uretimleri getir //
-	uretimler := []UretimModel{}
+	uretimler := []models.UretimModel{}
 	if err := r.db.Where("SIPARIS_NO = ? AND URETIM_YERI = ?", siparisID, newUretimYeri).Find(&uretimler).Error; err != nil {
 		return nil, &appErrors.Error{
 			Code:    http.StatusInternalServerError,
@@ -157,13 +162,13 @@ func (r *OrderRepositoryImpl) GetOrderUretimBilgileriBySiparisID(siparisID, uret
 	}
 
 	// uretimlerin resimleri varsa getir
-	uretimlerResponse := []UretimResponse{}
+	uretimlerResponse := []models.UretimResponse{}
 	for _, uretim := range uretimler {
 		uretimlerResponse = append(uretimlerResponse, uretim.ToUretimResponse())
 	}
 
 	for index, uretim := range uretimlerResponse {
-		uretimResimleri := []UretimUploads{}
+		uretimResimleri := []models.UretimUploads{}
 		err := r.db.Where("uretim_id = ?", uretim.KeyNumber).Find(&uretimResimleri).Error
 		if err != nil {
 			return nil, &appErrors.Error{
@@ -231,7 +236,7 @@ func (r *OrderRepositoryImpl) GetOrderUretimBilgileriBySiparisID(siparisID, uret
 		}
 	}
 
-	var order OrderModel
+	var order models.OrderModel
 	err := r.db.Where("SIPARIS_NO = ?", siparisID).First(&order).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -248,7 +253,7 @@ func (r *OrderRepositoryImpl) GetOrderUretimBilgileriBySiparisID(siparisID, uret
 
 	// defolari getir
 
-	defoList := []DefoTanimModel{}
+	defoList := []models.DefoTanimModel{}
 
 	if uretimYeri == "kalite" {
 		uretimYeri = "Kalite Kontrol"
@@ -273,7 +278,7 @@ func (r *OrderRepositoryImpl) GetOrderUretimBilgileriBySiparisID(siparisID, uret
 		}
 	}
 
-	defoListResponse := []DefoTanimResponse{}
+	defoListResponse := []models.DefoTanimResponse{}
 
 	for _, defo := range defoList {
 		defoListResponse = append(defoListResponse, defo.ToDefoTanimResponse())
@@ -281,7 +286,7 @@ func (r *OrderRepositoryImpl) GetOrderUretimBilgileriBySiparisID(siparisID, uret
 
 	// chart hersapla
 
-	chartList := []ChartResponse{}
+	chartList := []models.ChartResponse{}
 
 	var uretimlerMap = make(map[string]float64)
 
@@ -295,7 +300,7 @@ func (r *OrderRepositoryImpl) GetOrderUretimBilgileriBySiparisID(siparisID, uret
 	}
 
 	for k, v := range uretimlerMap {
-		chartList = append(chartList, ChartResponse{
+		chartList = append(chartList, models.ChartResponse{
 			ColorHexCode: "#FF0000",
 			Percent:      (v / toplamMiktar) * 100,
 			Name:         k,
@@ -310,14 +315,14 @@ func (r *OrderRepositoryImpl) GetOrderUretimBilgileriBySiparisID(siparisID, uret
 		chartList[i].ColorHexCode = utils.GetColor(i)
 	}
 
-	return &SiparisUretimResponse{
+	return &models.SiparisUretimResponse{
 		ChartResponse:  chartList,
 		UretimResponse: uretimlerResponse,
 		SiparisMiktari: utils.Float64Value(order.SiparisMiktari),
 		ToplamMiktar:   toplamMiktar,
 		SaglamMiktar:   saglamMiktar,
 		DefoMiktar:     defoMiktar,
-		UretimChartResponse: UretimChartResponse{
+		UretimChartResponse: models.UretimChartResponse{
 			DokumaMiktar:          dokumaMiktar,
 			DokumaColorHexCode:    utils.GetColor(0),
 			YikamaMiktar:          yikamaMiktar,
@@ -343,7 +348,7 @@ func (r *OrderRepositoryImpl) GetOrderUretimBilgileriBySiparisID(siparisID, uret
 
 func (r *OrderRepositoryImpl) AddUretimUploads(tx *gorm.DB, uretimID int, url string) error {
 
-	res := tx.Create(&UretimUploads{
+	res := tx.Create(&models.UretimUploads{
 		ID:       uuid.New().String(),
 		UretimID: uretimID,
 		Url:      url,
@@ -358,7 +363,7 @@ func (r *OrderRepositoryImpl) AddUretimUploads(tx *gorm.DB, uretimID int, url st
 
 func (r *OrderRepositoryImpl) DeleteUretim(id int) *appErrors.Error {
 
-	if err := r.db.Model(&UretimModel{}).Where("KEYNUMBER = ?", id).Delete(&UretimModel{}).Error; err != nil {
+	if err := r.db.Model(&models.UretimModel{}).Where("KEYNUMBER = ?", id).Delete(&models.UretimModel{}).Error; err != nil {
 		logger.Logger.Error("veri tabanindan uretimi silerken hata olustu", zap.Error(err))
 		return &appErrors.Error{
 			Code:    http.StatusInternalServerError,
@@ -371,7 +376,7 @@ func (r *OrderRepositoryImpl) DeleteUretim(id int) *appErrors.Error {
 
 func (r *OrderRepositoryImpl) GetUretimUploadsPath(tx *gorm.DB, uretimID int) ([]string, *appErrors.Error) {
 
-	var uretimUploads []UretimUploads
+	var uretimUploads []models.UretimUploads
 	if err := tx.Where("uretim_id = ?", uretimID).Find(&uretimUploads).Error; err != nil {
 		logger.Logger.Error("veri tabanindan uretim resimlerini getirirken hata olustu", zap.Error(err))
 		return nil, &appErrors.Error{
@@ -386,6 +391,71 @@ func (r *OrderRepositoryImpl) GetUretimUploadsPath(tx *gorm.DB, uretimID int) ([
 	}
 
 	return paths, nil
+}
+
+func (r *OrderRepositoryImpl) GetCustomerOrderByIslemAdi(islemAdi string) ([]models.CustomerOrdersResponse, *appErrors.Error) {
+
+	var column string
+
+	islemAdi = utils.CapitalizeAllSmall(islemAdi)
+
+	switch islemAdi {
+	case "dokuma":
+		column = "DOKUMA"
+	case "yikama":
+		column = "YIKAMA"
+	case "kalite":
+		column = "KALITEKONTROL"
+	case "paketleme":
+		column = "PAKETLEME"
+	case "sevkiyat":
+		column = "SEVKIYAT"
+	default:
+		return nil, &appErrors.Error{
+			Code:    http.StatusBadRequest,
+			Message: "islem adi gecersiz",
+		}
+
+	}
+
+	// siparisleri getir
+	var orderList []models.CustomerOrdersModel
+	if err := r.db.Model(&models.OrderModel{}).Select("MUSTERI_KODU, MUSTERI_ADI, count(*) as SIPARISMIKTARI").Where(column+" = ?", 1).Group("MUSTERI_KODU, MUSTERI_ADI").Find(&orderList).Error; err != nil {
+		return nil, err_fetch_customer_order_failed
+	}
+
+	if len(orderList) == 0 {
+		return nil, err_customer_order_not_found
+	}
+
+	var orderListResponse []models.CustomerOrdersResponse
+	for _, order := range orderList {
+		orderListResponse = append(orderListResponse, order.ToCustomerOrdersResponse())
+	}
+
+	return orderListResponse, nil
+
+}
+
+func (r *OrderRepositoryImpl) AddModelResim(imageURL string, code string) (string, *appErrors.Error) {
+
+	err := r.db.Clauses(clause.OnConflict{
+		Columns: []clause.Column{
+			{Name: "KODU"},
+		},
+		DoUpdates: clause.AssignmentColumns([]string{"RESIM_URL"}),
+	}).Create(&models.ModelResimModel{
+		ResimURL: imageURL,
+		Kodu:     code,
+	}).Error
+	if err != nil {
+		logger.Logger.Error("siparis model resim eklendikten sonra hata olustu", zap.Error(err))
+		return "", &appErrors.Error{
+			Code:    http.StatusInternalServerError,
+			Message: "siparis model resim eklendikten sonra hata olustu",
+		}
+	}
+	return "", nil
 }
 
 // func (r *OrderRepositoryImpl) UpdateUretim(tx *gorm.DB, uretim UretimUpdateRequest) *appErrors.Error {

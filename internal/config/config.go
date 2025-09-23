@@ -13,6 +13,7 @@ type ConfigModel struct {
 	DBPassword   string
 	DBName       string
 	JWTSecretKey string
+	UploadFolder string
 }
 
 var Config ConfigModel
@@ -27,5 +28,6 @@ func InitConfig() {
 	Config.DBName = os.Getenv("DB_NAME")
 	Config.DBUser = os.Getenv("DB_USER")
 	Config.JWTSecretKey = os.Getenv("JWT_SECRET")
+	Config.UploadFolder = os.Getenv("UPLOAD_FOLDER_PATH")
 
 }

@@ -18,4 +18,7 @@ func RegisterOrderRoutes(router *gin.RouterGroup, ctx IOrderController) {
 		order.DELETE("/uretim", middleware.AdminMiddleware(), ctx.DeleteUretim)
 	}
 
+	order.GET("/customerOrders", middleware.AuthMiddleware(), ctx.GetCustomerOrdersByIslemAdi)
+	order.POST("/modelResim", ctx.AddNewModelResim)
+
 }

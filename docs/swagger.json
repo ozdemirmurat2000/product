@@ -132,6 +132,97 @@
                 }
             }
         },
+        "/order/customerOrders": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "order"
+                ],
+                "summary": "Get customer orders by islem adi",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "islem adi",
+                        "name": "islemAdi",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.SuccessResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponseModel"
+                        }
+                    }
+                }
+            }
+        },
+        "/order/modelResim": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "order"
+                ],
+                "summary": "Add new model resim",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "Image",
+                        "name": "image",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Kodu",
+                        "name": "kodu",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.SuccessResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponseModel"
+                        }
+                    }
+                }
+            }
+        },
         "/order/summary": {
             "get": {
                 "security": [
@@ -154,6 +245,13 @@
                         "type": "string",
                         "description": "islem adi",
                         "name": "islemAdi",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "musteri kodu",
+                        "name": "musteriKodu",
                         "in": "query",
                         "required": true
                     }
