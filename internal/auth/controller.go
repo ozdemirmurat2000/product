@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	appErrors "productApp/pkg/errors"
+	"productApp/pkg/models"
 	"productApp/pkg/response"
 	"productApp/pkg/utils"
 
@@ -28,13 +29,13 @@ func NewAuthController(s AuthService) AuthController {
 // @Tags         auth
 // @Accept       json
 // @Produce      json
-// @Param        auth body auth.LoginRequest true "login request params"
-// @Success      200  {object} response.SuccessResponseModel(data={auth.LoginResponse})
+// @Param        auth body models.LoginRequest true "login request params"
+// @Success      200  {object} response.SuccessResponseModel(data={models.LoginResponse})
 // @Failure      400  {object} response.ErrorResponseModel
 // @Router       /auth/login [post]
 func (ctr *AuthControllerImpl) Login(ctx *gin.Context) {
 
-	var request LoginRequest
+	var request models.LoginRequest
 	err := ctx.ShouldBind(&request)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, response.ErrorResponse(utils.FormatValidationError(err, request)))

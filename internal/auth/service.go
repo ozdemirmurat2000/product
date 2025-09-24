@@ -4,11 +4,12 @@ import (
 	"net/http"
 	appErrors "productApp/pkg/errors"
 	"productApp/pkg/jwt"
+	"productApp/pkg/models"
 	"time"
 )
 
 type AuthService interface {
-	Login(userName, password string) (LoginResponse, error)
+	Login(userName, password string) (models.LoginResponse, error)
 }
 
 type AuthServiceImpl struct {
@@ -19,22 +20,22 @@ func NewAuthService(r AuthRepository) AuthService {
 	return &AuthServiceImpl{r: r}
 }
 
-func (s *AuthServiceImpl) Login(userName, password string) (LoginResponse, error) {
+func (s *AuthServiceImpl) Login(userName, password string) (models.LoginResponse, error) {
 
 	userDB, err := s.r.GetUserByUserName(userName)
 	if err != nil {
-		return LoginResponse{}, err
+		return models.LoginResponse{}, err
 	}
 
 	if userDB.Password != password {
-		return LoginResponse{}, &appErrors.Error{Code: http.StatusBadRequest, Message: "kullanici adi veya sifre hatali"}
+		return models.LoginResponse{}, &appErrors.Error{Code: http.StatusBadRequest, Message: "kullanici adi veya sifre hatali"}
 	}
 
 	isAdmin := userDB.IsAdmin
 
 	accessToken, err := jwt.GenerateJWT(userDB.ID, userDB.UserName, isAdmin, time.Now().Add(time.Hour*24))
 	if err != nil {
-		return LoginResponse{}, &appErrors.Error{Code: http.StatusInternalServerError, Message: appErrors.ERR_UNKNOWN}
+		return models.LoginResponse{}, &appErrors.Error{Code: http.StatusInternalServerError, Message: appErrors.ERR_UNKNOWN}
 
 	}
 
@@ -42,9 +43,9 @@ func (s *AuthServiceImpl) Login(userName, password string) (LoginResponse, error
 
 	if err != nil {
 
-		return LoginResponse{}, &appErrors.Error{Code: http.StatusInternalServerError, Message: appErrors.ERR_UNKNOWN}
+		return models.LoginResponse{}, &appErrors.Error{Code: http.StatusInternalServerError, Message: appErrors.ERR_UNKNOWN}
 
 	}
 
-	return LoginResponse{AccessToken: accessToken, RefreshToken: refreshToken, User: userDB.ToUserResponse()}, nil
+	return models.LoginResponse{AccessToken: accessToken, RefreshToken: refreshToken, User: userDB.ToUserResponse()}, nil
 }

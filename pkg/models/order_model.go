@@ -533,3 +533,99 @@ func (m *ModelResimModel) BeforeUpdate(tx *gorm.DB) (err error) {
 	m.UpdatedAt = &now
 	return nil
 }
+
+type NewOrderModel struct {
+	KeyNumber            int        `gorm:"column:KEYNUMBER;primaryKey;autoIncrement" json:"keyNumber"`
+	SiparisNo            string     `gorm:"column:SIPARIS_NO;unique;not null"` // UNIQUE ve NOT NULL
+	MusteriKodu          *string    `gorm:"column:MUSTERI_KODU" json:"musteriKodu"`
+	MusteriAdi           *string    `gorm:"column:MUSTERI_ADI" json:"musteriAdi"`
+	SiparisTarihi        *time.Time `gorm:"column:SIPARIS_TARIHI" json:"siparisTarihi"`
+	Aciklama             *string    `gorm:"column:ACIKLAMA" json:"aciklama"`
+	DDesenKodu           *string    `gorm:"column:D_DESEN_KODU" json:"dDesenKodu"`
+	DDesenAciklama       *string    `gorm:"column:D_DESEN_ACIKLAMA" json:"dDesenAciklama"`
+	DModelKodu           *string    `gorm:"column:D_MODEL_KODU" json:"dModelKodu"`
+	DSiklik1             *float64   `gorm:"column:D_SIKLIK_1" json:"dSiklik1"`
+	DSiklik2             *float64   `gorm:"column:D_SIKLIK_2" json:"dSiklik2"`
+	DSacak               *string    `gorm:"column:D_SACAK" json:"dSacak"`
+	DMamulEbat           *string    `gorm:"column:D_MAMUL_EBAT" json:"dMamulEbat"`
+	DDokumaCesidi        *string    `gorm:"column:D_DOKUMA_CESIDI" json:"dDokumaCesidi"`
+	DGramaj              *float64   `gorm:"column:D_GRAMAJ" json:"dGramaj"`
+	CTarakEni            *float64   `gorm:"column:C_TARAK_ENI" json:"cTarakEni"`
+	CNumara              *string    `gorm:"column:C_NUMARA" json:"cNumara"`
+	CRenk                *string    `gorm:"column:C_RENK" json:"cRenk"`
+	CSiklik              *float64   `gorm:"column:C_SIKLIK" json:"cSiklik"`
+	CSacakDahilBoy       *float64   `gorm:"column:C_SACAK_DAHIL_BOY" json:"cSacakDahilBoy"`
+	CSarf                *float64   `gorm:"column:C_SARF" json:"cSarf"`
+	AAtkiIplikNo         *string    `gorm:"column:A_ATKI_IPLIK_NO" json:"aAtkiIplikNo"`
+	ATex                 *float64   `gorm:"column:A_TEX" json:"aTex"`
+	AAtkiKolu            *int       `gorm:"column:A_ATKI_KOLU" json:"aAtkiKolu"`
+	ASiklik              *float64   `gorm:"column:A_SIKLIK" json:"aSiklik"`
+	AHamBoy              *float64   `gorm:"column:A_HAM_BOY" json:"aHamBoy"`
+	Renk1                *string    `gorm:"column:RENK_1" json:"renk1"`
+	Renk2                *string    `gorm:"column:RENK_2" json:"renk2"`
+	Renk3                *string    `gorm:"column:RENK_3" json:"renk3"`
+	Renk4                *string    `gorm:"column:RENK_4" json:"renk4"`
+	Renk5                *string    `gorm:"column:RENK_5" json:"renk5"`
+	Renk6                *string    `gorm:"column:RENK_6" json:"renk6"`
+	Renk7                *string    `gorm:"column:RENK_7" json:"renk7"`
+	Renk8                *string    `gorm:"column:RENK_8" json:"renk8"`
+	RenkAdi1             *string    `gorm:"column:RENK_ADI_1" json:"renkAdi1"`
+	RenkAdi2             *string    `gorm:"column:RENK_ADI_2" json:"renkAdi2"`
+	RenkAdi3             *string    `gorm:"column:RENK_ADI_3" json:"renkAdi3"`
+	RenkAdi4             *string    `gorm:"column:RENK_ADI_4" json:"renkAdi4"`
+	RenkAdi5             *string    `gorm:"column:RENK_ADI_5" json:"renkAdi5"`
+	RenkAdi6             *string    `gorm:"column:RENK_ADI_6" json:"renkAdi6"`
+	RenkAdi7             *string    `gorm:"column:RENK_ADI_7" json:"renkAdi7"`
+	RenkAdi8             *string    `gorm:"column:RENK_ADI_8" json:"renkAdi8"`
+	ARenkCM1             *float64   `gorm:"column:A_RENK_CM_1" json:"aRenkCM1"`
+	ARenkCM2             *float64   `gorm:"column:A_RENK_CM_2" json:"aRenkCM2"`
+	ARenkCM3             *float64   `gorm:"column:A_RENK_CM_3" json:"aRenkCM3"`
+	ARenkCM4             *float64   `gorm:"column:A_RENK_CM_4" json:"aRenkCM4"`
+	ARenkCM5             *float64   `gorm:"column:A_RENK_CM_5" json:"aRenkCM5"`
+	ARenkCM6             *float64   `gorm:"column:A_RENK_CM_6" json:"aRenkCM6"`
+	ARenkCM7             *float64   `gorm:"column:A_RENK_CM_7" json:"aRenkCM7"`
+	ARenkCM8             *float64   `gorm:"column:A_RENK_CM_8" json:"aRenkCM8"`
+	ARenkYZ1             *float64   `gorm:"column:A_RENK_YZ_1" json:"aRenkYZ1"`
+	ARenkYZ2             *float64   `gorm:"column:A_RENK_YZ_2" json:"aRenkYZ2"`
+	ARenkYZ3             *float64   `gorm:"column:A_RENK_YZ_3" json:"aRenkYZ3"`
+	ARenkYZ4             *float64   `gorm:"column:A_RENK_YZ_4" json:"aRenkYZ4"`
+	ARenkYZ5             *float64   `gorm:"column:A_RENK_YZ_5" json:"aRenkYZ5"`
+	ARenkYZ6             *float64   `gorm:"column:A_RENK_YZ_6" json:"aRenkYZ6"`
+	ARenkYZ7             *float64   `gorm:"column:A_RENK_YZ_7" json:"aRenkYZ7"`
+	ARenkYZ8             *float64   `gorm:"column:A_RENK_YZ_8" json:"aRenkYZ8"`
+	ARenkSarf1           *float64   `gorm:"column:A_RENK_SARF_1" json:"aRenkSarf1"`
+	ARenkSarf2           *float64   `gorm:"column:A_RENK_SARF_2" json:"aRenkSarf2"`
+	ARenkSarf3           *float64   `gorm:"column:A_RENK_SARF_3" json:"aRenkSarf3"`
+	ARenkSarf4           *float64   `gorm:"column:A_RENK_SARF_4" json:"aRenkSarf4"`
+	ARenkSarf5           *float64   `gorm:"column:A_RENK_SARF_5" json:"aRenkSarf5"`
+	ARenkSarf6           *float64   `gorm:"column:A_RENK_SARF_6" json:"aRenkSarf6"`
+	ARenkSarf7           *float64   `gorm:"column:A_RENK_SARF_7" json:"aRenkSarf7"`
+	ARenkSarf8           *float64   `gorm:"column:A_RENK_SARF_8" json:"aRenkSarf8"`
+	SiparisMiktari       *float64   `gorm:"column:SIPARIS_MIKTARI" json:"siparisMiktari"`
+	SacakTipi            *string    `gorm:"column:SACAK_TIPI" json:"sacakTipi"`
+	Fiyat                *float64   `gorm:"column:FIYAT" json:"fiyat"`
+	FiyatTipi            *string    `gorm:"column:FIYAT_TIPI" json:"fiyatTipi"`
+	TerminTarihi         *time.Time `gorm:"column:TERMIN_TARIHI" json:"terminTarihi"`
+	SiparisKalemAciklama *string    `gorm:"column:SIPARIS_KALEM_ACIKLAMA" json:"siparisKalemAciklama"`
+	YikamaVarMi          *bool      `gorm:"column:YIKAMA_VARMI" json:"yikamaVarMi"`
+	YikamaTipi           *string    `gorm:"column:YIKAMA_TIPI" json:"yikamaTipi"`
+	YikamaAciklama       *string    `gorm:"column:YIKAMA_ACIKLAMA" json:"yikamaAciklama"`
+	EtiketVarMi          *bool      `gorm:"column:ETIKET_VARMI" json:"etiketVarMi"`
+	EtiketAciklama       *string    `gorm:"column:ETIKET_ACIKLAMA" json:"etiketAciklama"`
+	EtiketResim          []byte     `gorm:"column:ETIKET_RESIM" json:"etiketResim"`
+	PaketVarMi           *bool      `gorm:"column:PAKET_VARMI" json:"paketVarMi"`
+	PaketAciklama        *string    `gorm:"column:PAKET_ACIKLAMA" json:"paketAciklama"`
+	PaketResim           []byte     `gorm:"column:PAKET_RESIM" json:"paketResim"`
+	KoliVarMi            *bool      `gorm:"column:KOLI_VARMI" json:"koliVarMi"`
+	KoliAciklama         *string    `gorm:"column:KOLI_ACIKLAMA" json:"koliAciklama"`
+	KoliResim            []byte     `gorm:"column:KOLI_RESIM" json:"koliResim"`
+	Dokuma               int        `gorm:"column:DOKUMA;default:0" json:"dokuma"`
+	Yikama               int        `gorm:"column:YIKAMA;default:0" json:"yikama"`
+	KaliteKontrol        int        `gorm:"column:KALITEKONTROL;default:0" json:"kaliteKontrol"`
+	Paketleme            int        `gorm:"column:PAKETLEME;default:0" json:"paketleme"`
+	Sevkiyat             int        `gorm:"column:SEVKIYAT;default:0" json:"sevkiyat"`
+}
+
+func (m *NewOrderModel) TableName() string {
+	return "TBL_YENI_SIPARIS_LISTE"
+}

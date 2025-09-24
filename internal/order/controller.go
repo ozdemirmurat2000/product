@@ -3,11 +3,13 @@ package order
 import (
 	"net/http"
 	"productApp/pkg/jwt"
+	"productApp/pkg/logger"
 	"productApp/pkg/models"
 	"productApp/pkg/response"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 type IOrderController interface {
@@ -18,6 +20,10 @@ type IOrderController interface {
 	DeleteUretim(ctx *gin.Context)
 	GetCustomerOrdersByIslemAdi(ctx *gin.Context)
 	AddNewModelResim(ctx *gin.Context)
+	UpdateEtiketImageURL(ctx *gin.Context)
+	UpdatePaketlemeImageURL(ctx *gin.Context)
+	UpdateKoliImageURL(ctx *gin.Context)
+	UpdateRenkImageURL(ctx *gin.Context)
 }
 
 type OrderControllerImpl struct {
@@ -256,26 +262,186 @@ func (c *OrderControllerImpl) GetCustomerOrdersByIslemAdi(ctx *gin.Context) {
 func (c *OrderControllerImpl) AddNewModelResim(ctx *gin.Context) {
 	file, err := ctx.FormFile("image")
 	if err != nil {
+		logger.Logger.Error("resim yuklemede hata", zap.Error(err))
 		ctx.JSON(http.StatusBadRequest, response.ErrorResponse(err.Error()))
 		return
 	}
 	kodu := ctx.Request.FormValue("kodu")
 
 	if file == nil {
+		logger.Logger.Error("resim yuklemede hata", zap.Error(err))
 		ctx.JSON(http.StatusBadRequest, response.ErrorResponse("file zorunlu"))
 		return
 	}
 
 	if kodu == "" {
+		logger.Logger.Error("resim yuklemede hata", zap.Error(err))
 		ctx.JSON(http.StatusBadRequest, response.ErrorResponse("kodu zorunlu"))
 		return
 	}
 
 	url, appErr := c.service.AddNewModelResim(file, kodu)
 	if appErr != nil {
+		logger.Logger.Error("veri tabanina kayit ederken hata", zap.Error(appErr))
 		ctx.JSON(appErr.Code, response.ErrorResponse(appErr.Message))
 		return
 	}
 
 	ctx.JSON(http.StatusOK, response.SuccessResponse("model resim eklendi", url))
+}
+
+// Update Etiket Image URL
+//
+// @Summary      Update etiket image url
+// @Tags         order
+// @Accept       json
+// @Produce      json
+// @Param        siparisNo formData string true "Siparis no"
+// @Param        image formData file true "Image"
+// @Success      200  {object} response.SuccessResponseModel
+// @Failure      400  {object} response.ErrorResponseModel
+// @Security     BearerAuth
+// @Router       /order/etiketImage [post]
+func (c *OrderControllerImpl) UpdateEtiketImageURL(ctx *gin.Context) {
+	file, err := ctx.FormFile("image")
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, response.ErrorResponse(err.Error()))
+		return
+	}
+	siparisNo := ctx.Request.FormValue("siparisNo")
+
+	if file == nil {
+		ctx.JSON(http.StatusBadRequest, response.ErrorResponse("file zorunlu"))
+		return
+	}
+
+	if siparisNo == "" {
+		ctx.JSON(http.StatusBadRequest, response.ErrorResponse("siparisNo zorunlu"))
+		return
+	}
+
+	url, appErr := c.service.UpdateEtiketImageURL(siparisNo, file)
+	if appErr != nil {
+		ctx.JSON(appErr.Code, response.ErrorResponse(appErr.Message))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, response.SuccessResponse("etiket resim eklendi", url))
+}
+
+// Update Paketleme Image URL
+//
+// @Summary      Update paketleme image url
+// @Tags         order
+// @Accept       json
+// @Produce      json
+// @Param        siparisNo formData string true "Siparis no"
+// @Param        image formData file true "Image"
+// @Success      200  {object} response.SuccessResponseModel
+// @Failure      400  {object} response.ErrorResponseModel
+// @Security     BearerAuth
+// @Router       /order/paketlemeImage [post]
+func (c *OrderControllerImpl) UpdatePaketlemeImageURL(ctx *gin.Context) {
+	file, err := ctx.FormFile("image")
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, response.ErrorResponse(err.Error()))
+		return
+	}
+	siparisNo := ctx.Request.FormValue("siparisNo")
+
+	if file == nil {
+		ctx.JSON(http.StatusBadRequest, response.ErrorResponse("file zorunlu"))
+		return
+	}
+
+	if siparisNo == "" {
+		ctx.JSON(http.StatusBadRequest, response.ErrorResponse("siparisNo zorunlu"))
+		return
+	}
+
+	url, appErr := c.service.UpdatePaketlemeImageURL(siparisNo, file)
+	if appErr != nil {
+		ctx.JSON(appErr.Code, response.ErrorResponse(appErr.Message))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, response.SuccessResponse("paketleme resim eklendi", url))
+}
+
+// Update Koli Image URL
+//
+// @Summary      Update koli image url
+// @Tags         order
+// @Accept       json
+// @Produce      json
+// @Param        siparisNo formData string true "Siparis no"
+// @Param        image formData file true "Image"
+// @Success      200  {object} response.SuccessResponseModel
+// @Failure      400  {object} response.ErrorResponseModel
+// @Security     BearerAuth
+// @Router       /order/koliImage [post]
+func (c *OrderControllerImpl) UpdateKoliImageURL(ctx *gin.Context) {
+	file, err := ctx.FormFile("image")
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, response.ErrorResponse(err.Error()))
+		return
+	}
+	siparisNo := ctx.Request.FormValue("siparisNo")
+
+	if file == nil {
+		ctx.JSON(http.StatusBadRequest, response.ErrorResponse("file zorunlu"))
+		return
+	}
+
+	if siparisNo == "" {
+		ctx.JSON(http.StatusBadRequest, response.ErrorResponse("siparisNo zorunlu"))
+		return
+	}
+
+	url, appErr := c.service.UpdateKoliImageURL(siparisNo, file)
+	if appErr != nil {
+		ctx.JSON(appErr.Code, response.ErrorResponse(appErr.Message))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, response.SuccessResponse("koli resim eklendi", url))
+}
+
+// Update Renk Image URL
+//
+// @Summary      Update renk image url
+// @Tags         order
+// @Accept       json
+// @Produce      json
+// @Param        renkKodu formData string true "Renk kodu"
+// @Param        image formData file true "Image"
+// @Success      200  {object} response.SuccessResponseModel
+// @Failure      400  {object} response.ErrorResponseModel
+// @Security     BearerAuth
+// @Router       /order/renkImage [post]
+func (c *OrderControllerImpl) UpdateRenkImageURL(ctx *gin.Context) {
+	file, err := ctx.FormFile("image")
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, response.ErrorResponse(err.Error()))
+		return
+	}
+	renkKodu := ctx.Request.FormValue("renkKodu")
+
+	if file == nil {
+		ctx.JSON(http.StatusBadRequest, response.ErrorResponse("file zorunlu"))
+		return
+	}
+
+	if renkKodu == "" {
+		ctx.JSON(http.StatusBadRequest, response.ErrorResponse("renkKodu zorunlu"))
+		return
+	}
+
+	url, appErr := c.service.UpdateRenkImageURL(renkKodu, file)
+	if appErr != nil {
+		ctx.JSON(appErr.Code, response.ErrorResponse(appErr.Message))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, response.SuccessResponse("renk resim eklendi", url))
 }

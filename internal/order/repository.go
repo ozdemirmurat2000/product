@@ -25,7 +25,10 @@ type OrderRepository interface {
 	GetUretimUploadsPath(tx *gorm.DB, uretimID int) ([]string, *appErrors.Error)
 	GetCustomerOrderByIslemAdi(islemAdi string) ([]models.CustomerOrdersResponse, *appErrors.Error)
 	AddModelResim(imageURL string, code string) (string, *appErrors.Error)
-	// UpdateUretim(tx *gorm.DB, uretim UretimUpdateRequest) *appErrors.Error
+	UpdateEtiketImageURL(siparisNo string, imageURL string) (string, *appErrors.Error)
+	UpdatePaketlemeImageURL(siparisNo string, imageURL string) (string, *appErrors.Error)
+	UpdateKoliImageURL(siparisNo string, imageURL string) (string, *appErrors.Error)
+	UpdateRenkImageURL(renkKodu string, imageURL string) (string, *appErrors.Error)
 }
 
 type OrderRepositoryImpl struct {
@@ -49,7 +52,7 @@ func (r *OrderRepositoryImpl) GetOrderBySiparisID(siparisID string) (*models.Ord
 		imageBase64 = base64.StdEncoding.EncodeToString([]byte(imageBase64))
 	}
 
-	if err := r.db.Where("SIPARIS_NO = ?", siparisID).First(&order).Error; err != nil {
+	if err := r.db.Model(&models.OrderModel{}).Where("SIPARIS_NO = ?", siparisID).First(&order).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, &appErrors.Error{
 				Code:    http.StatusNotFound,
@@ -399,12 +402,14 @@ func (r *OrderRepositoryImpl) GetCustomerOrderByIslemAdi(islemAdi string) ([]mod
 
 	islemAdi = utils.CapitalizeAllSmall(islemAdi)
 
+	fmt.Println(islemAdi)
+
 	switch islemAdi {
 	case "dokuma":
 		column = "DOKUMA"
-	case "yikama":
+	case "yıkama":
 		column = "YIKAMA"
-	case "kalite":
+	case "kalite kontrol":
 		column = "KALITEKONTROL"
 	case "paketleme":
 		column = "PAKETLEME"
@@ -458,32 +463,43 @@ func (r *OrderRepositoryImpl) AddModelResim(imageURL string, code string) (strin
 	return "", nil
 }
 
-// func (r *OrderRepositoryImpl) UpdateUretim(tx *gorm.DB, uretim UretimUpdateRequest) *appErrors.Error {
+func (r *OrderRepositoryImpl) UpdateEtiketImageURL(siparisNo string, imageURL string) (string, *appErrors.Error) {
 
-// 	updates := map[string]interface{}{}
+	err := r.db.Model(&models.OrderModel{}).Where("SIPARIS_NO = ?", siparisNo).Update("ETIKET_IMAGE_URL", imageURL).Error
 
-// 	if uretim.Kullanici != nil {
-// 		updates["KULLANICI"] = *uretim.Kullanici
-// 	}
-// 	if uretim.Miktar != nil {
-// 		updates["MIKTAR"] = *uretim.Miktar
-// 	}
-// 	if uretim.UretimDurum != nil {
-// 		updates["URETIM_DURUM"] = *uretim.UretimDurum
-// 	}
-// 	if uretim.UretimYeri != nil {
-// 		updates["URETIM_YERI"] = *uretim.UretimYeri
-// 	}
-// 	if uretim.UretimTarihSaat != nil {
-// 		updates["URETIM_TARIH_SAAT"] = *uretim.UretimTarihSaat
-// 	}
+	if err != nil {
+		logger.Logger.Error("siparis etiket resim eklendikten sonra hata olustu", zap.Error(err))
+		return "", err_update_etiket_image_url
+	}
+	return "", nil
+}
+func (r *OrderRepositoryImpl) UpdatePaketlemeImageURL(siparisNo string, imageURL string) (string, *appErrors.Error) {
 
-// 	if err := tx.Model(&UretimModel{}).Where("KEYNUMBER = ?", uretim.KeyNumber).Updates(updates).Error; err != nil {
-// 		return &appErrors.Error{
-// 			Code:    http.StatusInternalServerError,
-// 			Message: "siparis uretim bilgileri guncellenirken bir hata olustu",
-// 		}
-// 	}
+	err := r.db.Model(&models.OrderModel{}).Where("SIPARIS_NO = ?", siparisNo).Update("PAKET_IMAGE_URL", imageURL).Error
 
-// 	return nil
-// }
+	if err != nil {
+		logger.Logger.Error("siparis paketleme resim eklendikten sonra hata olustu", zap.Error(err))
+		return "", err_update_paketleme_image_url
+	}
+	return "", nil
+}
+func (r *OrderRepositoryImpl) UpdateKoliImageURL(siparisNo string, imageURL string) (string, *appErrors.Error) {
+
+	err := r.db.Model(&models.OrderModel{}).Where("SIPARIS_NO = ?", siparisNo).Update("KOLI_IMAGE_URL", imageURL).Error
+
+	if err != nil {
+		logger.Logger.Error("siparis koli resim eklendikten sonra hata olustu", zap.Error(err))
+		return "", err_update_koli_image_url
+	}
+	return "", nil
+}
+func (r *OrderRepositoryImpl) UpdateRenkImageURL(renkKodu string, imageURL string) (string, *appErrors.Error) {
+
+	err := r.db.Model(&models.RenkTanimModel{}).Where("KODU = ?", renkKodu).Update("RESIM_URL", imageURL).Error
+
+	if err != nil {
+		logger.Logger.Error("siparis renk resim eklendikten sonra hata olustu", zap.Error(err))
+		return "", err_update_renk_image_url
+	}
+	return "", nil
+}

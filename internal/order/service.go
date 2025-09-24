@@ -6,9 +6,11 @@ import (
 	"net/http"
 	appErrors "productApp/pkg/errors"
 	"productApp/pkg/image_storage"
+	"productApp/pkg/logger"
 	"productApp/pkg/models"
 	"time"
 
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -20,7 +22,10 @@ type IOrderService interface {
 	DeleteUretim(id int) *appErrors.Error
 	GetCustomerOrdersByIslemAdi(islemAdi string) ([]models.CustomerOrdersResponse, *appErrors.Error)
 	AddNewModelResim(file *multipart.FileHeader, kodu string) (string, *appErrors.Error)
-	// UpdateUretim(uretim UretimUpdateRequest) *appErrors.Error
+	UpdateEtiketImageURL(siparisNo string, file *multipart.FileHeader) (string, *appErrors.Error)
+	UpdatePaketlemeImageURL(siparisNo string, file *multipart.FileHeader) (string, *appErrors.Error)
+	UpdateKoliImageURL(siparisNo string, file *multipart.FileHeader) (string, *appErrors.Error)
+	UpdateRenkImageURL(renkKodu string, file *multipart.FileHeader) (string, *appErrors.Error)
 }
 
 type OrderServiceImpl struct {
@@ -194,12 +199,30 @@ func (s *OrderServiceImpl) GetCustomerOrdersByIslemAdi(islemAdi string) ([]model
 
 func (s *OrderServiceImpl) AddNewModelResim(file *multipart.FileHeader, kodu string) (string, *appErrors.Error) {
 
-	url, err := image_storage.UploadImage(file, "iplik")
+	url, err := image_storage.UploadImage(file, "model")
 	if err != nil {
+		logger.Logger.Error("resim yuklemede hata", zap.Error(err))
 		return "", err
 	}
 
 	_, errRepo := s.repo.AddModelResim(url, kodu)
+	if errRepo != nil {
+		logger.Logger.Error("veri tabanina kayit ederken hata", zap.Error(errRepo))
+		image_storage.DeleteImage(url)
+		return "", errRepo
+	}
+
+	return url, nil
+}
+
+func (s *OrderServiceImpl) UpdateEtiketImageURL(siparisNo string, file *multipart.FileHeader) (string, *appErrors.Error) {
+
+	url, err := image_storage.UploadImage(file, "etiket")
+	if err != nil {
+		return "", err
+	}
+
+	_, errRepo := s.repo.UpdateEtiketImageURL(siparisNo, url)
 	if errRepo != nil {
 		image_storage.DeleteImage(url)
 		return "", errRepo
@@ -208,23 +231,49 @@ func (s *OrderServiceImpl) AddNewModelResim(file *multipart.FileHeader, kodu str
 	return url, nil
 }
 
-// func (s *OrderServiceImpl) UpdateUretim(uretim UretimUpdateRequest) *appErrors.Error {
+func (s *OrderServiceImpl) UpdatePaketlemeImageURL(siparisNo string, file *multipart.FileHeader) (string, *appErrors.Error) {
 
-// 	err := s.db.Transaction(func(tx *gorm.DB) error {
+	url, err := image_storage.UploadImage(file, "paketleme")
+	if err != nil {
+		return "", err
+	}
 
-// 		err := s.repo.UpdateUretim(tx, uretim)
-// 		if err != nil {
-// 			return err
-// 		}
+	_, errRepo := s.repo.UpdatePaketlemeImageURL(siparisNo, url)
+	if errRepo != nil {
+		image_storage.DeleteImage(url)
+		return "", errRepo
+	}
 
-// 		return err
-// 	})
-// 	if err != nil {
-// 		return &appErrors.Error{
-// 			Code:    http.StatusInternalServerError,
-// 			Message: appErrors.ERR_UNKNOWN,
-// 		}
-// 	}
+	return url, nil
+}
+func (s *OrderServiceImpl) UpdateKoliImageURL(siparisNo string, file *multipart.FileHeader) (string, *appErrors.Error) {
 
-// 	return nil
-// }
+	url, err := image_storage.UploadImage(file, "koli")
+	if err != nil {
+		return "", err
+	}
+
+	_, errRepo := s.repo.UpdateKoliImageURL(siparisNo, url)
+	if errRepo != nil {
+		image_storage.DeleteImage(url)
+		return "", errRepo
+	}
+
+	return url, nil
+}
+
+func (s *OrderServiceImpl) UpdateRenkImageURL(renkKodu string, file *multipart.FileHeader) (string, *appErrors.Error) {
+
+	url, err := image_storage.UploadImage(file, "renk")
+	if err != nil {
+		return "", err
+	}
+
+	_, errRepo := s.repo.UpdateRenkImageURL(renkKodu, url)
+	if errRepo != nil {
+		image_storage.DeleteImage(url)
+		return "", errRepo
+	}
+
+	return url, nil
+}

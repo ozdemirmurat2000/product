@@ -3,7 +3,6 @@ package config
 import (
 	"fmt"
 	"net/url"
-	"productApp/pkg/models"
 	"time"
 
 	"gorm.io/driver/sqlserver"
@@ -30,7 +29,7 @@ func InitDB() gorm.DB {
 		panic(err)
 	}
 
-	db.AutoMigrate(&models.ModelResimModel{})
+	// db.AutoMigrate(&models.ModelResimModel{}, &models.NewOrderModel{})
 
 	return *db
 }

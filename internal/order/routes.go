@@ -20,5 +20,9 @@ func RegisterOrderRoutes(router *gin.RouterGroup, ctx IOrderController) {
 
 	order.GET("/customerOrders", middleware.AuthMiddleware(), ctx.GetCustomerOrdersByIslemAdi)
 	order.POST("/modelResim", ctx.AddNewModelResim)
+	order.POST("/etiketImage", ctx.UpdateEtiketImageURL)
+	order.POST("/paketlemeImage", ctx.UpdatePaketlemeImageURL)
+	order.POST("/koliImage", ctx.UpdateKoliImageURL)
+	order.POST("/renkImage", ctx.UpdateRenkImageURL)
 
 }

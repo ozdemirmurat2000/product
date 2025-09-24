@@ -1,6 +1,6 @@
 basePath: /api/v1
 definitions:
-  auth.LoginRequest:
+  models.LoginRequest:
     properties:
       password:
         type: string
@@ -46,7 +46,7 @@ paths:
         name: auth
         required: true
         schema:
-          $ref: '#/definitions/auth.LoginRequest'
+          $ref: '#/definitions/models.LoginRequest'
       produces:
       - application/json
       responses:
@@ -139,6 +139,68 @@ paths:
       summary: Get customer orders by islem adi
       tags:
       - order
+  /order/etiketImage:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Siparis no
+        in: formData
+        name: siparisNo
+        required: true
+        type: string
+      - description: Image
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponseModel'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Update etiket image url
+      tags:
+      - order
+  /order/koliImage:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Siparis no
+        in: formData
+        name: siparisNo
+        required: true
+        type: string
+      - description: Image
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponseModel'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Update koli image url
+      tags:
+      - order
   /order/modelResim:
     post:
       consumes:
@@ -168,6 +230,68 @@ paths:
       security:
       - BearerAuth: []
       summary: Add new model resim
+      tags:
+      - order
+  /order/paketlemeImage:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Siparis no
+        in: formData
+        name: siparisNo
+        required: true
+        type: string
+      - description: Image
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponseModel'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Update paketleme image url
+      tags:
+      - order
+  /order/renkImage:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Renk kodu
+        in: formData
+        name: renkKodu
+        required: true
+        type: string
+      - description: Image
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponseModel'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Update renk image url
       tags:
       - order
   /order/summary:
